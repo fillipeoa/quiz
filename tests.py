@@ -102,3 +102,27 @@ def test_question_points_validation():
         Question(title='q1', points=0)  # Pontos abaixo do mínimo
     with pytest.raises(Exception):
         Question(title='q1', points=101)  # Pontos acima do máximo
+
+@pytest.fixture
+def question_with_choices():
+    question = Question(title="Questão com choices", max_selections=2)
+    question.add_choice("Opção 1", False)
+    question.add_choice("Opção 2", True)  # Correta
+    question.add_choice("Opção 3", True)  # Correta
+    return question
+
+def test_select_correct_choices_with_fixture(question_with_choices):
+    correct_ids = [choice.id for choice in question_with_choices.choices if choice.is_correct]
+    selected = question_with_choices.select_choices(correct_ids)
+    assert selected == correct_ids
+    assert len(selected) == 2
+
+def test_remove_choice_with_fixture(question_with_choices):
+    initial_count = len(question_with_choices.choices)
+    choice_to_remove = question_with_choices.choices[0]
+    
+    question_with_choices.remove_choice_by_id(choice_to_remove.id)
+    
+    assert len(question_with_choices.choices) == initial_count - 1
+    with pytest.raises(Exception):
+        question_with_choices.remove_choice_by_id(choice_to_remove.id)  # Choice já removida
